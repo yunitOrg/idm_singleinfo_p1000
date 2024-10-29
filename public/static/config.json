@@ -1,0 +1,22 @@
+{
+  "version": "1.0.0",
+  "lasttime": "2024-04-117 09:38:08",
+  "author": "申龙",
+  "className": "singleinfo",
+  "module": [
+    {
+      "classId": "idm.componet.singleinfo.icommandscreen",
+      "comName": "指挥大屏",
+      "className": "ICommandScreen",
+      "comType": "common",
+      "comLangue": "vue"
+    },
+    {
+      "classId": "idm.componet.singleinfo.iwallmap",
+      "comName": "挂图作战",
+      "className": "IWallMap",
+      "comType": "common",
+      "comLangue": "vue"
+    }
+  ]
+}

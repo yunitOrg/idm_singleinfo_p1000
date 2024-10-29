@@ -1,0 +1,18 @@
+{
+  "classId": "idm.componet.singleinfo.icommandscreen",
+  "comName": "指挥大屏",
+  "className": "ICommandScreen",
+  "comType": "common",
+  "comLangue": "vue",
+  "compositeAttr": [
+    {
+        "type": "input",
+        "layoutType": "inline",
+        "text": "唯一标识",
+        "bindKey": "ctrlId",
+        "disabled": true,
+        "default": "@[packageid]",
+        "desc": ""
+    }
+  ]
+}
