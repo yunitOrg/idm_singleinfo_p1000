@@ -14,46 +14,54 @@
       <div class="wall-tools ptb12">
         <div class="wall-left">
           <div class="wall-li" v-for="(item, index) in toolsTip" :key="index">
-            <div :class="[item.class, !item.show?'wall-scr':'wall-tip']" ><i v-if="!item.show"></i></div>
+            <div :class="item.class" ><i></i></div>
             <span>{{ item.label }}</span>
           </div>
-        </div>
-        <div class="wall-right">
-          <span v-for="(item, index) in searchList" :key="index" :class="item.value == active && 'active'" @click="handleClick(item)">{{ item.label }}</span>
         </div>
       </div>
       <!--表格-->
       <div class="wall-table">
-        <table ref="table" class="idm-meeting-room-card-table" border="1" cellspacing="0">
-          <tbody>
-            <tr class="table-time-bar">
-              <td ref="tableTdName" class="td-name" style="border-right-color: transparent;">
-                <span></span>
-              </td>
-              <td ></td>
-              <!-- <colgroup style="width:90px"></colgroup> -->
-              <td class="td-time" :key="t" v-for="(td, t) in theadList">
-                <span>{{ td.label }}</span>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-        <table ref="table" class="idm-meeting-room-card-table" border="1" cellspacing="0">
-          <tbody>
-            <template v-for="(item, index) in roomList">
-              <th :colspan="theadList.length+2" :key="index">{{ item.title }}</th>
-              <tr v-for="(room, r) in item.table" :key="r">
-                <td class="td-room" colspan="2"><span>{{ room.label }}</span></td>
-                <td v-for="(td, t) in theadList" :key="t" class="td-item" >
-                  <span class="tdbg" :class="`state${room[td.i]}`" v-if="room[td.i] == 1">-</span>
-                  <span class="tdbg" :class="`state${room[td.i]}`" v-else>
-                    <i></i>
+        <div class="year-ul pdr50">
+          <div class="year-copyli w10"></div>
+          <div class="year-li w10" v-for="(item, index) in theadList" :key="index">
+            <span>{{ item.label }}</span>
+          </div>
+        </div>
+        <div class="wall-content">
+          <div class="li" v-for="(item, index) in roomList" :key="index">
+            <div class="li-name">
+              <span>{{ item.title }}</span>
+              <div class="blockOut">
+                <div class="block" :style="`transform: rotate(${-135+(item.percent/100)*180}deg)`"></div>
+                <span class="text">{{ item.percent }}%</span>
+              </div>
+            </div>
+            <div class="li-box">
+              <div class="li-line pdr50" v-for="(room, roomindex) in item.table" :key="roomindex">
+                <div class="title w10">{{ room.label }}</div>
+                <div class="title w10" v-for="(td, t) in theadList" :key="t">
+                  <span class="tdbg" :class="{
+                      tdactive: handleSetClass(room[td.i]),
+                    }">
+                    <template v-if="handleSet(room[td.i])">
+                      <a-tooltip placement="top">
+                        <template #title>
+                          <span v-if="handleSet(room[td.i]) == 'type1'">已反馈</span>
+                          <span v-if="handleSet(room[td.i]) == 'type2'">未反馈</span>
+                          <span v-if="handleSet(room[td.i]) == 'type3'">无需反馈</span>
+                        </template>
+                        <i :class="handleSetClass(room[td.i])"></i>
+                      </a-tooltip>
+                    </template>
+                    <template v-else>
+                      <i :class="handleSetClass(room[td.i])"></i>
+                    </template>
                   </span>
-                </td>
-              </tr>
-            </template> 
-          </tbody>
-        </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -85,32 +93,28 @@ export default {
       active: 1,
       toolsTip: [
         {
-          class: 'state2',
+          class: 'state1 wall-scr',
+          label: '已完成',
+        },
+        {
+          class: 'state2 wall-scr',
+          label: '已超期',
+        },
+        {
+          class: 'state3 wall-scr',
+          label: '进行中',
+        },
+        {
+          class: 'wall1',
           label: '已反馈',
-          show: true
         },
         {
-          class: 'state3',
-          label: '临期',
-          show: true
+          class: 'wall2',
+          label: '未反馈'
         },
         {
-          class: 'state4',
-          label: '超期',
-          show: true
-        },
-        {
-          class: 'state5',
-          label: '未到反馈期',
-          show: true
-        },
-        {
-          class: 'state7',
-          label: '已办结'
-        },
-        {
-          class: 'state6',
-          label: '未办结'
+          class: 'wall3',
+          label: '无需反馈'
         },
       ],
       searchList: [
@@ -135,6 +139,23 @@ export default {
     this.handleYearMonth()
   },
   methods: {
+    // 设置class
+    handleSetClass(item) {
+      if (item) {
+        const n = item.split(',');
+        return `state${n[0]} type${n[1]}`
+      } else {
+        return ''
+      }
+    },
+    handleSet(item) {
+      if (item) {
+        const n = item.split(',');
+        return n[1] ? `type${n[1]}` : ''
+      } else {
+        return ''
+      }
+    },
     handleClick(item) {
       this.active = item.value
     },
@@ -187,7 +208,59 @@ export default {
       window.IDM.setStyleToPageHead(this.moduleObject.id + " .iwallmap", styleObject);
     },
     async getMockData() {
-      this.roomList = getWallRoom()
+      const ary = getWallRoom();
+      let start = false;
+      let end = false;
+      let result = [];
+      ary.forEach(item => {
+        if (item.table && item.table.length > 0) {
+          item.table.forEach(k => {
+            console.log(Object.keys(k), k, 88)
+            result = []
+            Object.keys(k).forEach(j => {
+              console.log(k[j], 88)
+              if (k[j]) {
+                result.forEach(s => {
+                  if (!s['yes']) {
+                    result.push({yes: j}) 
+                  }
+                })
+              }
+              console.log(result, 888)
+              // if (k[j] && !start) {
+              //   start = true;
+              //   end = false
+              //   // start && (k[j] = k[j] + ",first");
+              // }
+              // // if (k[j+1]) {
+              // //   k[j] = k[j]
+              // // }
+              // if (!k[j+1] || j=='12') {
+              //   start = false;
+              //   end = true;
+              //   // (k[j] = k[j] + ",end");
+              // }
+              // if (start && !end) {
+              //   start && (k[j] = k[j] + ",first");
+              // }
+              // end && (k[j] = k[j] + ",end");
+              // if (k == '12') {
+              // }
+            })
+          })
+        }
+      })
+      this.roomList = ary;
+      this.$nextTick(() => {
+        const line = document.querySelectorAll('.li-line')
+        line.forEach(k => {
+          const align = k.querySelectorAll('.tdactive');
+          const start = align[0].querySelector('i');
+          const end = align[align.length-1].querySelector('i');
+          start.style.borderRadius = '20px 0 0 20px';
+          end.style.borderRadius = '0 20px 20px 0';
+        })
+      })
     },
     initData() {
       if (this.moduleObject.env !== 'production') {
@@ -198,7 +271,9 @@ export default {
         IDM.datasource.request(this.propData.dataSourceForm[0]?.id, {
           moduleObject: this.moduleObject,
           }, (data) => {
-            this.roomList = data;
+            const ary = data;
+            console.log(ary, 8)
+            this.roomList = ary;
         })
       }
     },
@@ -220,6 +295,12 @@ export default {
   .ptb12{
     padding: 12px 0;
   }
+  .pdr50{
+    padding-right: 50px;
+  }
+  .w10{
+    width: 10%;
+  }
   .wall-tools{
     display: flex;
     // justify-content: space-between;
@@ -232,11 +313,12 @@ export default {
     align-items: center;
     color: #333;
     .wall-li+.wall-li{
-      margin-left: 20px;
+      margin-left: 40px;
     }
     .wall-li{
       display: flex;
       align-items: center;
+      font-size: 16px;
     }
     .wall-tip{
       display: inline-block;
@@ -246,15 +328,17 @@ export default {
       margin-bottom: 2px;
     }
     .wall-scr{
-      margin-right: 10px;
+      margin-right: 12px;
       height: 15px;
       margin-bottom: 3px;
+      color: #333333;
       i{
-        width: 17px;
-        height: 17px;
+        width: 30px;
+        height: 16px;
         display: inline-block;
       }
     }
+    
   }
   .wall-right{
     position: absolute;
@@ -287,121 +371,229 @@ export default {
       color: #206FBF;
     }
   }
-  .table-time-bar{
-    background-color: #E9F0FF;
-    td{
-      color: #333333;
-    }
-  }
+  // .table-time-bar{
+  //   background-color: #E9F0FF;
+  //   td{
+  //     color: #333333;
+  //   }
+  // }
   .wall-table{
-    .wall-header{
-      width: 100%;
+    padding-right: 20px;
+    box-sizing: border-box;
+    .year-ul{
       display: flex;
-    }
-    .td{
-      height: 50px;
-      text-align: center;
-      width: 90px;
-      border: 1px solid #ddd;
-      font-weight: 500;
-      color: #333;
-    }
-    .idm-meeting-room-card-table{
+      align-items: center;
       width: 100%;
-      height: 100%;
-      border-collapse: collapse;
-      table-layout: fixed;
-      th{
-        // border-right: 1px solid transparent;
-        width: 100%;
-        border: 1px solid #ddd;
-        background: none;
-        border-top-color: transparent;
-        // border: none;
-        padding: 0;
-        line-height: 55px;
-        padding: 0 20px;
-        font-size: 18px;
-        font-weight: bold;
+      height: 48px;
+      .year-copyli{
+        height: inherit;
       }
-      tbody{
-        border-right: 1px solid transparent;
-        tr:first-child td {
-          // border-top-color: transparent;
-        }
-        tr:last-child td {
-          // border-bottom-color: transparent;
-        }
-        tr td:first-child {
-          // border-left-color: transparent;
-          // border-right-color: transparent;
-        }
-        tr td:last-child {
-          // border-right-color: transparent;
-        }
+      .year-li{
+        height: inherit;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #D3DBEE;
+        font-size: 16px;
+        color: #333333;
+        border-right: 1px solid #fff;
       }
-      td{
-        height: 40px;
-        text-align: center;
-        width: 90px;
-        border: 1px solid #ddd;
-        font-weight: 500;
-        color: #333;
+      .year-li:nth-child(2){
+        border-radius: 100px 0 0 100px;
       }
-      .td-content td{
-        height: 100px;
+      .year-li:last-child{
+        border-right: 0;
+        border-radius: 0 100px 100px 0;
       }
-      .td-noon img{
-        width: 15px;
-        height: 15px;
-        margin-right: 5px;
+    }
+    .wall-content{
+      .li:last-child{
+        margin-bottom: 20px;
+      }
+      .li{
+        box-shadow: 0px 2px 10px 0px rgba(0,0,0,0.1);
+        border-radius: 20px;
+        margin-top: 20px;
+        .li-name{
+          height: 60px;
+          display: flex;
+          align-items: center;
+          font-size: 20px;
+          color: #333333;
+          padding: 0 20px;
+          box-sizing: border-box;
+          font-weight: bold;
+          border-bottom: 1px solid rgba(233,240,255,1);
+        }
+        .title{
+          height: inherit;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 16px;
+          color: #333333;
+          font-family: PingFangSC-Regular;
+          font-weight: 400;
+        }
+        .li-box{
+          padding: 20px 0;
+        }
+        .li-line .tdactive:nth-child(1){
+          // background-color: #f00;
+        }
+        .li-line{
+          height: 50px;
+          display: flex;
+          .tdbg{
+            width: 100%;
+            height: inherit;
+            display: inline-block;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            i{
+              width: 100%;
+              height: 32px;
+              display: inline-block;
+              border-right: 1px solid #ffffff;
+            }
+          }
+          .tdactive{
+            .type1::after{
+              position: absolute;
+              left: 50%;
+              top: 50%;
+              transform: translate(-50%, -50%);
+              content: "";
+              width: 20px;
+              height: 20px;
+              display: inline-block;
+              background-image: url('../assets/alert_active.png');
+              background-size: 100% 100%;
+              background-repeat: no-repeat;
+            }
+            .type2::after{
+              position: absolute;
+              left: 50%;
+              top: 50%;
+              transform: translate(-50%, -50%);
+              content: "";
+              width: 20px;
+              height: 20px;
+              display: inline-block;
+              background-image: url('../assets/nofeed.png');
+              background-size: 100% 100%;
+              background-repeat: no-repeat;
+            }
+            .type3::after{
+              position: absolute;
+              left: 50%;
+              top: 50%;
+              transform: translate(-50%, -50%);
+              content: "";
+              width: 22px;
+              height: 6px;
+              background-image: url('../assets/no.png');
+              background-size: 100% 100%;
+              background-repeat: no-repeat;
+            }
+          }
+        }
       }
     }
   }
-  .td-item{
+  .blockOut{
+    margin-left: 40px;
+    width: 78px;
+    height: 39px;
+    overflow: hidden;
     position: relative;
+    .block{
+      position: absolute;
+      width: 78px;
+      height: 78px;
+      border-left: 10px solid #0489F0;
+      border-top: 10px solid #0489F0;
+      border-right: 10px solid #D7ECFC;
+      border-bottom: 10px solid #D7ECFC;
+      border-radius: 50%;
+      transform-origin: 50%;
+      box-sizing: border-box;
+    }
+    .text{
+      position: absolute;
+      bottom: 0px;
+      left: 0;
+      right: 0;
+      margin: 0;
+      text-align: center;
+      font-size: 14px;
+      color: #1F86E4;
+    }
   }
-  .tdbg{
-    display: inline-block;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: absolute;
-    top: 0;
-    left: 0;
+  .state1{
+    background-color: #2BA13C;
   }
   .state2{
-    background-color: #CCFF95;
+    background-color: #D80000;
   }
   .state3{
-    background-color: #FFE371;
+    background-color: #2E80F6;
   }
-  .state4{
-    background-color: #E63939;
+  // .state4{
+  //   background-color: #E63939;
+  // }
+  // .state5{
+  //   background-color: #EEEEEE;
+  // }
+  .wall1{
+    width: 20px;
+    height: 20px;
+    margin-right: 12px;
+    margin-top: -3px;
+    display: inline-block;
+    background-image: url('../assets/alert.png');
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
   }
-  .state5{
-    background-color: #EEEEEE;
+  .wall2{
+    width: 20px;
+    height: 20px;
+    margin-right: 12px;
+    margin-top: -3px;
+    display: inline-block;
+    background-image: url('../assets/nofeed.png');
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
   }
-  .state6{
-    i{
-      width: 22px;
-      height: 22px;
-      background: url('../assets/red.png');
-      background-repeat: no-repeat;
-      background-size: 100% 100%;
-      display: inline-block;
-    }
+  .wall3{
+    margin-right: 12px;
+    margin-top: -3px;
+    width: 22px;
+    height: 6px;
+    background-image: url('../assets/no.png');
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
   }
-  .state7{
-    i{
-      width: 22px;
-      height: 22px;
-      background: url('../assets/green.png');
-      background-repeat: no-repeat;
-      background-size: 100% 100%;
-    }
-  }
+  // .state6{
+  //   i{
+  //     width: 22px;
+  //     height: 22px;
+  //     background: url('../assets/red.png');
+  //     background-repeat: no-repeat;
+  //     background-size: 100% 100%;
+  //     display: inline-block;
+  //   }
+  // }
+  // .state7{
+  //   i{
+  //     width: 22px;
+  //     height: 22px;
+  //     background: url('../assets/green.png');
+  //     background-repeat: no-repeat;
+  //     background-size: 100% 100%;
+  //   }
+  // }
 }
 </style>

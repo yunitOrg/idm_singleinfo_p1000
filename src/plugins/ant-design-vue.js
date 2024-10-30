@@ -16,6 +16,8 @@ import 'ant-design-vue/lib/empty/style/css';
 import 'ant-design-vue/lib/popover/style/css';
 import 'ant-design-vue/lib/row/style/css';
 import 'ant-design-vue/lib/checkbox/style/css';
+import 'ant-design-vue/lib/space/style/css';
+import 'ant-design-vue/lib/progress/style/css';
 
 import {
     Input,
@@ -37,7 +39,9 @@ import {
     Empty,
     Popover,
     Row,
-    Checkbox
+    Checkbox,
+    Space,
+    Progress,
 } from 'ant-design-vue'
 
 Vue.use(Input)
@@ -59,4 +63,6 @@ Vue.use(Empty);
 Vue.use(Popover);
 Vue.use(Row);
 Vue.use(Checkbox);
+Vue.use(Space);
+Vue.use(Progress);
 Vue.prototype.$message = message;
