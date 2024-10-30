@@ -41,14 +41,14 @@
                 <div class="title w10">{{ room.label }}</div>
                 <div class="title w10" v-for="(td, t) in theadList" :key="t">
                   <span class="tdbg" :class="{
-                      tdactive: handleSetClass(room[td.i]),
+                      tdactive: handleFirst(room[td.i]),
                     }">
                     <template v-if="handleSet(room[td.i])">
                       <a-tooltip placement="top">
                         <template #title>
-                          <span v-if="handleSet(room[td.i]) == 'type1'">已反馈</span>
-                          <span v-if="handleSet(room[td.i]) == 'type2'">未反馈</span>
-                          <span v-if="handleSet(room[td.i]) == 'type3'">无需反馈</span>
+                          <span v-if="handleSet(room[td.i]) == 'type1'">无需反馈</span>
+                          <span v-if="handleSet(room[td.i]) == 'type2'">已反馈</span>
+                          <span v-if="handleSet(room[td.i]) == 'type3'">未反馈</span>
                         </template>
                         <i :class="handleSetClass(room[td.i])"></i>
                       </a-tooltip>
@@ -93,27 +93,27 @@ export default {
       active: 1,
       toolsTip: [
         {
-          class: 'state1 wall-scr',
+          class: 'state2 wall-scr',
           label: '已完成',
         },
         {
-          class: 'state2 wall-scr',
+          class: 'state3 wall-scr',
           label: '已超期',
         },
         {
-          class: 'state3 wall-scr',
+          class: 'state1 wall-scr',
           label: '进行中',
         },
         {
-          class: 'wall1',
+          class: 'wall2',
           label: '已反馈',
         },
         {
-          class: 'wall2',
+          class: 'wall3',
           label: '未反馈'
         },
         {
-          class: 'wall3',
+          class: 'wall1',
           label: '无需反馈'
         },
       ],
@@ -151,7 +151,17 @@ export default {
     handleSet(item) {
       if (item) {
         const n = item.split(',');
-        return n[1] ? `type${n[1]}` : ''
+        const result = (n[1] && n[1] != 0) ? `type${n[1]}` : '';
+        return result
+      } else {
+        return ''
+      }
+    },
+    handleFirst(item) {
+      if (item) {
+        const n = item.split(',');
+        const result = (n[0] && n[0] != 0) ? `type${n[0]}` : '';
+        return result
       } else {
         return ''
       }
@@ -252,13 +262,21 @@ export default {
       })
       this.roomList = ary;
       this.$nextTick(() => {
+        console.log("=====")
         const line = document.querySelectorAll('.li-line')
+        console.log(line, 8887)
         line.forEach(k => {
           const align = k.querySelectorAll('.tdactive');
           const start = align[0].querySelector('i');
           const end = align[align.length-1].querySelector('i');
-          start.style.borderRadius = '20px 0 0 20px';
-          end.style.borderRadius = '0 20px 20px 0';
+          console.log(start, end, 999)
+          if (start == end) {
+            console.log(333)
+            start.style.borderRadius = '20px 20px 20px 20px';
+          } else {
+            start.style.borderRadius = '20px 0 0 20px';
+            end.style.borderRadius = '0 20px 20px 0';
+          }
         })
       })
     },
@@ -466,10 +484,10 @@ export default {
               top: 50%;
               transform: translate(-50%, -50%);
               content: "";
-              width: 20px;
-              height: 20px;
+              width: 22px;
+              height: 6px;
               display: inline-block;
-              background-image: url('../assets/alert_active.png');
+              background-image: url('../assets/no.png');
               background-size: 100% 100%;
               background-repeat: no-repeat;
             }
@@ -482,7 +500,7 @@ export default {
               width: 20px;
               height: 20px;
               display: inline-block;
-              background-image: url('../assets/nofeed.png');
+              background-image: url('../assets/alert_active.png');
               background-size: 100% 100%;
               background-repeat: no-repeat;
             }
@@ -492,9 +510,9 @@ export default {
               top: 50%;
               transform: translate(-50%, -50%);
               content: "";
-              width: 22px;
-              height: 6px;
-              background-image: url('../assets/no.png');
+              width: 20px;
+              height: 20px;
+              background-image: url('../assets/nofeed.png');
               background-size: 100% 100%;
               background-repeat: no-repeat;
             }
@@ -533,13 +551,13 @@ export default {
     }
   }
   .state1{
-    background-color: #2BA13C;
+    background-color: #2E80F6;
   }
   .state2{
-    background-color: #D80000;
+    background-color: #2BA13C;
   }
   .state3{
-    background-color: #2E80F6;
+    background-color: #D80000;
   }
   // .state4{
   //   background-color: #E63939;
@@ -548,12 +566,12 @@ export default {
   //   background-color: #EEEEEE;
   // }
   .wall1{
-    width: 20px;
-    height: 20px;
+    width: 22px;
+    height: 6px;
     margin-right: 12px;
     margin-top: -3px;
     display: inline-block;
-    background-image: url('../assets/alert.png');
+    background-image: url('../assets/no.png');
     background-size: 100% 100%;
     background-repeat: no-repeat;
   }
@@ -563,16 +581,16 @@ export default {
     margin-right: 12px;
     margin-top: -3px;
     display: inline-block;
-    background-image: url('../assets/nofeed.png');
+    background-image: url('../assets/alert.png');
     background-size: 100% 100%;
     background-repeat: no-repeat;
   }
   .wall3{
     margin-right: 12px;
     margin-top: -3px;
-    width: 22px;
-    height: 6px;
-    background-image: url('../assets/no.png');
+    width: 20px;
+    height: 20px;
+    background-image: url('../assets/nofeed.png');
     background-size: 100% 100%;
     background-repeat: no-repeat;
   }
