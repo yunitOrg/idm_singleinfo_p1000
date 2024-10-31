@@ -11,22 +11,29 @@
     :idm-ctrl-id="moduleObject.id"
   >
     <div class="iwallmap">
-      <div class="wall-tools ptb12">
-        <div class="wall-left">
-          <div class="wall-li" v-for="(item, index) in toolsTip" :key="index">
-            <div :class="item.class" ><i></i></div>
-            <span>{{ item.label }}</span>
+      <div class="wall-position">
+        <div class="wall-head">
+          {{ year }}年挂图作战项目情况
+        </div>
+        <div class="wall-tools ptb12">
+          <div class="wall-left">
+            <div class="wall-li" v-for="(item, index) in toolsTip" :key="index">
+              <div :class="item.class" ><i></i></div>
+              <span>{{ item.label }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="year-box">
+          <div class="year-ul">
+            <div class="year-copyli w10"></div>
+            <div class="year-li w10" v-for="(item, index) in theadList" :key="index">
+              <span>{{ item.label }}</span>
+            </div>
           </div>
         </div>
       </div>
       <!--表格-->
       <div class="wall-table">
-        <div class="year-ul pdr50">
-          <div class="year-copyli w10"></div>
-          <div class="year-li w10" v-for="(item, index) in theadList" :key="index">
-            <span>{{ item.label }}</span>
-          </div>
-        </div>
         <div class="wall-content">
           <div class="li" v-for="(item, index) in roomList" :key="index">
             <div class="li-name">
@@ -38,11 +45,16 @@
             </div>
             <div class="li-box">
               <div class="li-line pdr50" v-for="(room, roomindex) in item.table" :key="roomindex">
-                <div class="title w10">{{ room.label }}</div>
-                <div class="title w10" v-for="(td, t) in theadList" :key="t">
-                  <span class="tdbg" :class="{
-                      tdactive: handleFirst(room[td.i]),
-                    }">
+                <div class="title w10">
+                  <span class="lititle" :title="room.label">{{ room.label }}</span>
+                </div>
+                <div class="title w10" :class="{
+                    tdactive: handleFirst(room[td.i]),
+                    tdstart: handleFirst(room[td.i]) && !handleFirst(room[td.i-1]),
+                    tdend: handleFirst(room[td.i]) && !handleFirst(room[td.i+1]) && td.i+1 < theadList.length-1  && i != theadList.length-1,
+                    tdsingle:  handleFirst(room[td.i]) && !handleFirst(room[td.i+1]) && !handleFirst(room[td.i-1]),
+                  }" v-for="(td, i) in theadList" :key="i">
+                  <span class="tdbg">
                     <template v-if="handleSet(room[td.i])">
                       <a-tooltip placement="top">
                         <template #title>
@@ -86,6 +98,7 @@ export default {
           paddingLeftVal: "20px"
         }
       },
+      year: new Date().getFullYear(),
       // 表头
       theadList: [],
       // 会议室
@@ -219,59 +232,17 @@ export default {
     },
     async getMockData() {
       const ary = getWallRoom();
-      let start = false;
-      let end = false;
-      let result = [];
-      ary.forEach(item => {
-        if (item.table && item.table.length > 0) {
-          item.table.forEach(k => {
-            console.log(Object.keys(k), k, 88)
-            result = []
-            Object.keys(k).forEach(j => {
-              console.log(k[j], 88)
-              if (k[j]) {
-                result.forEach(s => {
-                  if (!s['yes']) {
-                    result.push({yes: j}) 
-                  }
-                })
-              }
-              console.log(result, 888)
-              // if (k[j] && !start) {
-              //   start = true;
-              //   end = false
-              //   // start && (k[j] = k[j] + ",first");
-              // }
-              // // if (k[j+1]) {
-              // //   k[j] = k[j]
-              // // }
-              // if (!k[j+1] || j=='12') {
-              //   start = false;
-              //   end = true;
-              //   // (k[j] = k[j] + ",end");
-              // }
-              // if (start && !end) {
-              //   start && (k[j] = k[j] + ",first");
-              // }
-              // end && (k[j] = k[j] + ",end");
-              // if (k == '12') {
-              // }
-            })
-          })
-        }
-      })
       this.roomList = ary;
+      this.handleSetRidus()
+    },
+    handleSetRidus() {
       this.$nextTick(() => {
-        console.log("=====")
         const line = document.querySelectorAll('.li-line')
-        console.log(line, 8887)
         line.forEach(k => {
           const align = k.querySelectorAll('.tdactive');
           const start = align[0].querySelector('i');
           const end = align[align.length-1].querySelector('i');
-          console.log(start, end, 999)
           if (start == end) {
-            console.log(333)
             start.style.borderRadius = '20px 20px 20px 20px';
           } else {
             start.style.borderRadius = '20px 0 0 20px';
@@ -290,8 +261,8 @@ export default {
           moduleObject: this.moduleObject,
           }, (data) => {
             const ary = data;
-            console.log(ary, 8)
             this.roomList = ary;
+            this.handleSetRidus()
         })
       }
     },
@@ -319,12 +290,25 @@ export default {
   .w10{
     width: 10%;
   }
+  .lititle{
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    display: flex;
+    align-items: center;
+    height: 40px;
+    font-weight: bold;
+    color: #333;
+  }
   .wall-tools{
     display: flex;
     // justify-content: space-between;
     align-items: center;
     justify-content: center;
     position: relative;
+    background-color: #ffffff;
   }
   .wall-left{
     display: flex;
@@ -395,14 +379,15 @@ export default {
   //     color: #333333;
   //   }
   // }
-  .wall-table{
+  .year-box{
     padding-right: 20px;
-    box-sizing: border-box;
-    .year-ul{
+  }
+  .year-ul{
       display: flex;
       align-items: center;
       width: 100%;
       height: 48px;
+      padding-right: 70px;
       .year-copyli{
         height: inherit;
       }
@@ -423,7 +408,28 @@ export default {
         border-right: 0;
         border-radius: 0 100px 100px 0;
       }
-    }
+  }
+  .wall-head{
+    height: 80px;
+    font-size: 34px;
+    color: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #004DB4;
+  }
+  .wall-position{
+    width: 100%;
+    height: 200px;
+    position: fixed;
+    top: 0px;
+    left: 0;
+    z-index: 1;
+    background-color: #fff;
+  }
+  .wall-table{
+    margin-top: 200px;
+    box-sizing: border-box;
     .wall-content{
       .li:last-child{
         margin-bottom: 20px;
@@ -454,13 +460,10 @@ export default {
           font-weight: 400;
         }
         .li-box{
-          padding: 20px 0;
-        }
-        .li-line .tdactive:nth-child(1){
-          // background-color: #f00;
+          padding: 0 20px;
         }
         .li-line{
-          height: 50px;
+          height: 82px;
           display: flex;
           .tdbg{
             width: 100%;
@@ -518,6 +521,9 @@ export default {
             }
           }
         }
+        .li-line+.li-line{
+          border-top: 1px dashed #C5CAD6;
+        }
       }
     }
   }
@@ -549,6 +555,15 @@ export default {
       font-size: 14px;
       color: #1F86E4;
     }
+  }
+  .tdstart i{
+    border-radius: 20px 0 0 20px !important;
+  }
+  .tdend i{
+    border-radius: 0 20px 20px 0 !important;
+  }
+  .tdsingle i{
+    border-radius: 20px !important;
   }
   .state1{
     background-color: #2E80F6;
