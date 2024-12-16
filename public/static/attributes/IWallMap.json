@@ -15,6 +15,14 @@
         "desc": ""
     },
     {
+        "type":"input",
+        "layoutType":"inline",
+        "text":"标题",
+        "bindKey":"titleFormat",
+        "desc":"支持表达式 参数:{year}",
+        "default":"@[year]年挂图作战项目情况"
+    },
+    {
       "type": "group",
       "text": "外层样式",
       "desc": "点击？查看样式设置用法指南",

@@ -4,12 +4,13 @@
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve",
-    "build": "vue-cli-service build",
+    "build": "vue-cli-service build && idm zip",
     "gen": "idm-generate vue",
     "zip": "idm zip",
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
+    "@ant-design/icons": "2.1.1",
     "@idm-modules/core": "^1.0.72",
     "ant-design-vue": "^1.7.8",
     "core-js": "^3.6.5",
