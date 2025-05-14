@@ -30,7 +30,7 @@
             <div class="wall-table">
                 <div class="wall-content">
                     <div class="li" v-for="(item, index) in roomList" :key="index">
-                        <div class="li-name">
+                        <div class="li-name" @click="jumpToDetail(item.url)">
                             <span>{{ item.title }}</span>
                             <div class="blockOut">
                                 <div class="block" :style="`transform: rotate(${-135 + (item.percent / 100) * 180}deg)`"></div>
@@ -159,6 +159,11 @@ export default {
         this.handleYearMonth()
     },
     methods: {
+        jumpToDetail(url){
+            if (url) {
+                window.open(IDM.url.getWebPath(url))
+            }
+        },
         // 设置class
         handleSetClass(item) {
             if (item) {
@@ -459,6 +464,7 @@ export default {
                     box-sizing: border-box;
                     font-weight: bold;
                     border-bottom: 1px solid rgba(233, 240, 255, 1);
+                    cursor: pointer;
                 }
                 .title {
                     height: inherit;
